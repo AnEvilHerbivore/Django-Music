@@ -1,7 +1,7 @@
 import unittest
 from django.test import TestCase
 from django.urls import reverse
-from .models import Artist
+from .models import Artist, Song
 
 
 class ArtistTest(TestCase):
@@ -44,3 +44,37 @@ class ArtistTest(TestCase):
 
       # Getting 302 back because we have a success url and the view is redirecting under the covers?
       self.assertEqual(response.status_code, 302)
+
+
+class SongTest(TestCase):
+
+    def test_list_songs(self):
+        new_song = Song.objects.create(
+            title="song",
+            album="album",
+            artist_id="1"
+        )
+
+        # Issue a GET request.
+        # 'reverse' is used to generate a URL for a given view. The main advantage is that you do not hard code routes in your code.
+        response = self.client.get(reverse('history:songs'))
+
+        # Check that the response is 200 OK.
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(len(response.context['song_list']), 1)
+
+        self.assertIn(new_song.title.encode(), response.content)
+
+    def test_get_song_form(self):
+
+      response = self.client.get(reverse('history:song_form'))
+
+      self.assertIn(
+          '<input type="text" name="title" maxlength="100" required id="id_title" />'.encode(), response.content)
+
+    def test_post_artist(self):
+
+      response = self.client.post(reverse('history:song_form'), {'title': 'song', 'album': 'album', 'artist_id': "1"})
+
+      self.assertEqual(response.status_code, 200)

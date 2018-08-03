@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, TemplateView, FormView, DetailView, CreateView
 from history.models import Artist, Song
-from history.forms import ArtistForm
+from history.forms import ArtistForm, SongForm
 
 class IndexView(TemplateView):
   template_name = 'history/index.html'
@@ -42,9 +42,33 @@ class ArtistFormView(FormView):
     form.save()
     return super(ArtistFormView, self).form_valid(form)
 
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context["location"] = "add_artist"
+    return context
+
+
+class SongFormView(FormView):
+  template_name = 'history/song_form.html'
+  form_class = SongForm
+  # NOTE! Be sure to put the slash in front of the url to route properly
+  success_url = '/history/songs/'
+
+  def form_valid(self, form):
+    # This method is called when valid form data has been POSTed.
+    # It should return an HttpResponse.
+    form.save()
+    return super(SongFormView, self).form_valid(form)
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context["location"] = "add_song"
+    return context
+
 # With a detail view you only need to provide the model. Django does everything else (as long as you've named your template `artist_detail`) But we want to also include all of the Artist's songs, to. So we have to add them to the context object that's bound to the template
 class ArtistDetailView(DetailView):
   model = Artist
+  template_name = 'history/artist_detail.html'
 
 # ===============================
 # Song Views
@@ -75,3 +99,4 @@ class SongListView(ListView):
 
 class SongDetailView(DetailView):
   model = Song
+  template_name = 'history/song_detail.html'
